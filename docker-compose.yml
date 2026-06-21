@@ -1,0 +1,54 @@
+services:
+  php:
+    build: .
+    container_name: doctor_php
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - mysql
+    environment:
+      - DB_HOST=mysql
+      - DB_NAME=doctor_management
+      - DB_USER=doctor_user
+      - DB_PASS=doctor_pass
+    networks:
+      - doctor_network
+
+  mysql:
+    image: mysql:8.0
+    container_name: doctor_mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pass
+      MYSQL_DATABASE: doctor_management
+      MYSQL_USER: doctor_user
+      MYSQL_PASSWORD: doctor_pass
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - doctor_network
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: doctor_phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: doctor_user
+      PMA_PASSWORD: doctor_pass
+    depends_on:
+      - mysql
+    networks:
+      - doctor_network
+
+volumes:
+  mysql_data:
+
+networks:
+  doctor_network:
+    driver: bridge
